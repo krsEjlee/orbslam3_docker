@@ -35,3 +35,51 @@ It will take few minutes to initialize. Pleasde Be patient.
 You can use vscode remote development (recommended) or sublime to change codes.
 - `docker exec -it orbslam3 bash`
 - `subl /ORB_SLAM3`
+
+git clone -b add_euroc_example.sh https://github.com/jahaniam/ORB_SLAM3.git /ORB_SLAM3 
+cd /ORB_SLAM3
+chmod +x build.sh
+./build.sh
+
+
+# Add ROS package path to bashrc
+echo 'export ROS_PACKAGE_PATH=/opt/ros/noetic/share:/ORB_SLAM3/Examples/ROS' >> ~/.bashrc
+
+# Source the updated bashrc
+source ~/.bashrc
+
+
+# Make the build script executable
+chmod +x build_ros.sh
+
+catkin build
+source ~/catkin_ws/devel/setup.bash
+
+File.version: "1.0"
+Camera.type: "PinHole"
+Camera calibration and distortion parameters (OpenCV)
+Camera1.fx: 644.6349487304688
+Camera1.fy: 643.6536254882812
+Camera1.cx: 637.49169921875
+Camera1.cy: 361.69696044921875
+Camera1.k1: -0.05639747902750969
+Camera1.k2: 0.06732191890478134
+Camera1.p1: -0.0003759726241696626
+Camera1.p2: 0.0009479765431024134
+Camera.width: 1280
+Camera.height: 720
+Camera frames per second
+Camera.fps: 20
+Color order of the images (0: BGR, 1: RGB. It is ignored if images are grayscale)
+Camera.RGB: 1
+Transform from camera to IMU
+Camera1.T_cam_imu: !!opencv-matrix
+rows: 4
+cols: 4
+dt: f
+data: [1.0, 0.0, 0.0, -0.005,
+0.0, 1.0, 0.0, 0.017,
+0.0, 0.0, 1.0, 0.022,
+0.0, 0.0, 0.0, 1.0]
+
+
