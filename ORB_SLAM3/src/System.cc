@@ -176,6 +176,8 @@ System::System(const string &strVocFile, const string &strSettingsFile, const eS
         //cout << "Binary file read in " << msElapsed << " ms" << endl;
 
         //usleep(10*1000*1000);
+        vector<Map*> map_vector = mpAtlas->GetAllMaps();
+        mpAtlas->ChangeMap(map_vector.at(0)); 
         ActivateLocalizationMode();
     }
 
