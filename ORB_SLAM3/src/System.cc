@@ -42,7 +42,7 @@ System::System(const string &strVocFile, const string &strSettingsFile, const eS
                const bool bUseViewer, const int initFr, const string &strSequence):
     mSensor(sensor), mpViewer(static_cast<Viewer*>(NULL)), mbReset(false), mbResetActiveMap(false),
     mbActivateLocalizationMode(false), mbDeactivateLocalizationMode(false), mbShutDown(false),
-    mTrajectoryFrameInterval(100), mTrajectoryFrameCounter(0), mTrajectoryBasePath("./trajectories")
+    mTrajectoryFrameInterval(1000), mTrajectoryFrameCounter(0), mTrajectoryBasePath("trajectories")
 {
     // Output welcome message
     cout << endl <<
@@ -176,6 +176,7 @@ System::System(const string &strVocFile, const string &strSettingsFile, const eS
         //cout << "Binary file read in " << msElapsed << " ms" << endl;
 
         //usleep(10*1000*1000);
+        ActivateLocalizationMode();
     }
 
 
@@ -323,14 +324,15 @@ Sophus::SE3f System::TrackStereo(const cv::Mat &imLeft, const cv::Mat &imRight, 
     mTrackedMapPoints = mpTracker->mCurrentFrame.mvpMapPoints;
     mTrackedKeyPointsUn = mpTracker->mCurrentFrame.mvKeysUn;
 
-    // 궤적 주기적 저장
+    // 궤적 주기적 저장        
+
     mTrajectoryFrameCounter++;
     if(mTrajectoryFrameCounter % mTrajectoryFrameInterval == 0)
     {
-        string trajFilename = mTrajectoryBasePath + "/trajectory_" + to_string(mTrajectoryFrameCounter) + ".txt";
+        string trajFilename = mTrajectoryBasePath + "/temp_streo" + to_string(mTrajectoryFrameCounter);
         SaveTrajectoryEuRoC(trajFilename);
 
-        string kfTrajFilename = mTrajectoryBasePath + "/kf_trajectory_" + to_string(mTrajectoryFrameCounter) + ".txt";
+        string kfTrajFilename = mTrajectoryBasePath + "/temp_streo" + to_string(mTrajectoryFrameCounter);
         SaveKeyFrameTrajectoryEuRoC(kfTrajFilename);
         cout << "저장된 궤적: " << trajFilename << endl;
     }
@@ -406,6 +408,17 @@ Sophus::SE3f System::TrackRGBD(const cv::Mat &im, const cv::Mat &depthmap, const
     mTrackingState = mpTracker->mState;
     mTrackedMapPoints = mpTracker->mCurrentFrame.mvpMapPoints;
     mTrackedKeyPointsUn = mpTracker->mCurrentFrame.mvKeysUn;
+    mTrajectoryFrameCounter++;
+    if(mTrajectoryFrameCounter % mTrajectoryFrameInterval == 0)
+    {
+        string trajFilename = mTrajectoryBasePath + "/temp_rgbd" + to_string(mTrajectoryFrameCounter);
+        SaveTrajectoryEuRoC(trajFilename);
+
+        string kfTrajFilename = mTrajectoryBasePath + "/temp_rgbd" + to_string(mTrajectoryFrameCounter);
+        SaveKeyFrameTrajectoryEuRoC(kfTrajFilename);
+        cout << "저장된 궤적: " << trajFilename << endl;
+    }
+    
     return Tcw;
 }
 
@@ -483,7 +496,17 @@ Sophus::SE3f System::TrackMonocular(const cv::Mat &im, const double &timestamp, 
     mTrackedMapPoints = mpTracker->mCurrentFrame.mvpMapPoints;
     mTrackedKeyPointsUn = mpTracker->mCurrentFrame.mvKeysUn;
     
+    mTrajectoryFrameCounter++;
+    if(mTrajectoryFrameCounter % mTrajectoryFrameInterval == 0)
+    {
+        string trajFilename = mTrajectoryBasePath + "/temp_mono" + to_string(mTrajectoryFrameCounter);
+        SaveTrajectoryEuRoC(trajFilename);
 
+        string kfTrajFilename = mTrajectoryBasePath + "/temp_mono" + to_string(mTrajectoryFrameCounter);
+        SaveKeyFrameTrajectoryEuRoC(kfTrajFilename);
+        cout << "저장된 궤적: " << trajFilename << endl;
+    }
+    
     return Tcw;
 }
 
