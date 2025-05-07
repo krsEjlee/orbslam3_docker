@@ -170,7 +170,24 @@ System::System(const string &strVocFile, const string &strSettingsFile, const eS
         loadedAtlas = true;
 
         mpAtlas->CreateNewMap();
-
+        // Atlas 로드 후 지역화 모드 자동 활성화
+        if(loadedAtlas)
+        {
+            vector<Map*> map_vector = mpAtlas->GetAllMaps();
+            mpAtlas->ChangeMap(map_vector.at(0)); 
+            cout << "Atlas가 다음 경로에서 로드되었습니다: " << mStrLoadAtlasFromFile << endl;
+            cout << "자동으로 지역화 모드를 활성화합니다..." << endl;
+            mpTracker->InformOnlyTracking(true);  // 즉시 지역화 모드 활성화
+            
+            // 로컬 매핑 스레드 중지
+            mpLocalMapper->RequestStop();
+            
+            // 로컬 매핑이 실제로 중지될 때까지 짧게 대기
+            while(!mpLocalMapper->isStopped())
+            {
+                usleep(1000);  // 1ms 대기
+            }
+        }
         //clock_t timeElapsed = clock() - start;
         //unsigned msElapsed = timeElapsed / (CLOCKS_PER_SEC / 1000);
         //cout << "Binary file read in " << msElapsed << " ms" << endl;
@@ -513,11 +530,24 @@ Sophus::SE3f System::TrackMonocular(const cv::Mat &im, const double &timestamp, 
 }
 
 
-
 void System::ActivateLocalizationMode()
 {
     unique_lock<mutex> lock(mMutexMode);
     mbActivateLocalizationMode = true;
+
+    // 트래커에게 즉시 지역화 모드로 전환하라고 알려줌
+    mpTracker->InformOnlyTracking(true);
+
+    // 로컬 매핑 스레드 중지
+    mpLocalMapper->RequestStop();
+
+    // 로컬 매핑이 실제로 중지될 때까지 짧게 대기
+    while(!mpLocalMapper->isStopped())
+    {
+        usleep(1000);  // 1ms 대기
+    }
+
+    cout << "지역화 모드가 활성화되었습니다." << endl;
 }
 
 void System::DeactivateLocalizationMode()
@@ -1555,6 +1585,10 @@ bool System::LoadAtlas(int type)
         mpAtlas->SetORBVocabulary(mpVocabulary);
         mpAtlas->PostLoad();
 
+        // Atlas 로드 후 지역화 모드 즉시 활성화
+        cout << "Atlas가 성공적으로 로드되었습니다. 지역화 모드를 활성화합니다..." << endl;
+        mpTracker->InformOnlyTracking(true);
+        
         return true;
     }
     return false;
